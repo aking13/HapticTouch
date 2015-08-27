@@ -1,0 +1,108 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title> Leap Loop </title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js"></script>
+  <script src="https://js.leapmotion.com/leap-0.6.4.js"></script>
+  <script src="https://js.leapmotion.com/leap-plugins-0.1.10.js"></script>
+    <script src="hapticTouch.js"></script>
+</head>
+<body>
+
+<div id="output"></div>
+
+</body>
+
+<script>
+
+  var sphere_radius = 100;
+  var box_radius = 100;
+  function distancefunction(x1, y1, z1, x2, y2, z2) {
+      return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1) + (z2 - z1)*(z2 - z1));
+  }
+
+  console.log(window.innerWidth);
+  Leap.loop();
+  Leap.loopController.on('hand', function(hand){
+      var hand_pointables = hand.pointables;
+      
+      hand.pointables.forEach(function(finger) {
+          var x1 = finger.tipPosition[0]; //finger.x
+          var y1 = finger.tipPosition[1]; //finger.y
+          var z1 = finger.tipPosition[2]; //finger.z
+          var sx2 = sphere.position.x;
+          var sy2 = sphere.position.y;
+          var sz2 = sphere.position.z;
+          var bx2 = box.position.x;
+          var by2 = box.position.y;
+          var bz2 = box.position.z;
+          var s_raw_distance_from_center = distancefunction(x1, y1, z1, sx2, sy2, sz2);
+          var b_raw_distance_from_center = distancefunction(x1, y1, z1, bx2, by2, bz2);
+          var s_haptic_distance = s_raw_distance_from_center - sphere_radius;
+          var b_haptic_distance = b_raw_distance_from_center - sphere_radius;
+
+          if (s_haptic_distance <= 8) {
+            if (hand.pinchStrength > 0.5){
+             sphere.position.fromArray(hand.palmPosition);
+            }
+              console.log("touch registered");
+              console.log("sphere position after " + sx2 + ", " + sy2 + ", " + sz2);
+              if(hand.pinchStrength >.5 || hand.grabStrength > .5){
+                  sphere.position.fromArray(hand.palmPosition);
+              } else if(s_haptic_distance <= 5) {
+                 console.log("finger velocity " + finger.tipVelocity); 
+
+                  sphere.position.x += .03 * finger.tipVelocity[0];
+                  sphere.position.y += .03 * finger.tipVelocity[1];
+                  sphere.position.z += .02 * finger.tipVelocity[2];
+
+                 console.log("sphere position after " + sphere.position.x + ", " + sphere.position.y + ", " + sphere.position.z);
+            }
+          } else if(b_haptic_distance <= 8) {
+            if (hand.pinchStrength > 0.5){
+             sphere.position.fromArray(hand.palmPosition);
+            }
+              console.log("touch registered");
+              console.log("box position after " + bx2 + ", " + by2 + ", " + bz2);
+              if(hand.pinchStrength >.5 || hand.grabStrength > .5){
+                 sphere.position.fromArray(hand.palmPosition);
+              } else if(b_haptic_distance <= 5) {
+                 console.log("finger velocity " + finger.tipVelocity);
+                              
+                 sphere.position.x += .03 * finger.tipVelocity[0];
+                 sphere.position.y += .03 * finger.tipVelocity[1];
+                 sphere.position.z += .02 * finger.tipVelocity[2];
+                              
+                 console.log("sphere position after " + sphere.position.x + ", " + sphere.position.y + ", " + sphere.position.z);
+            }      
+        }
+      });
+
+      
+  }).use('boneHand', {
+    targetEl: document.body
+  });
+
+  var scene = Leap.loopController.plugins.boneHand.scene;
+  
+  
+  var box= new THREE.Mesh(
+    new THREE.BoxGeometry(box_radius, box_radius, box_radius),
+    new THREE.MeshPhongMaterial({color: 0xFF00FF})
+  );
+  box.position.set(300, 200, -100);
+  scene.add(box);
+  
+  var sphere= new THREE.Mesh(
+    new THREE.SphereGeometry(sphere_radius, 32, 64),
+    new THREE.MeshPhongMaterial({})
+  );
+  sphere.position.set(0, 100, 0);
+  scene.add(sphere);
+  
+
+
+
+</script>
+</html>
