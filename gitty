@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "hello" >> README.md
+git add .
+git commit -m "Updated readme"
+
+
